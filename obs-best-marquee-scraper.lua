@@ -707,6 +707,10 @@ function script_properties()
 	obs.obs_property_set_modified_callback(p_manual_timer, setting_manual_timer_modified_cb)
 	
 	local p_timer_reset_btn = obs.obs_properties_add_button(props, "timer_reset_btn", "Reset Timer", timer_reset_button_clicked)
+	local p_note_reset_hotkey = obs.obs_properties_add_text(props, "note_reset_hotkey", "Note:", obs.OBS_TEXT_INFO)
+	obs.obs_property_set_long_description(p_note_reset_hotkey,
+					"The \"<strong>BEST Parser Script: Reset Manual Timer</strong>\" Hotkey " ..
+					"resets the timer to 3:00, and only works when using the manual timer.")
 	
 	local p_auto_switchover = obs.obs_properties_add_bool(props, "auto_switchover", "Automatically switch labels\n"..
 																					"after the match ends.")
@@ -719,6 +723,11 @@ function script_properties()
 	local p_upcoming_time = obs.obs_properties_add_float(props, "upcoming_time", "Post-match label\nswitchover time", 0, 300, 0.001)
 	obs.obs_property_set_long_description(p_upcoming_time, "Amount of time in seconds after a match ends to wait before " ..
                                                            "automatically switching labels to the next upcoming match.")
+	
+	local p_note_switchover_hotkey = obs.obs_properties_add_text(props, "note_switchover_hotkey", "Note:", obs.OBS_TEXT_INFO)
+	obs.obs_property_set_long_description(p_note_switchover_hotkey,
+					"The \"<strong>BEST Parser Script: Switchover to Upcoming Match</strong>\" will immediately switch the " ..
+					"match information to the next match, but only works when between matches (no active timer)")
 	
 	local p_match_num_source = obs.obs_properties_add_list(props, "match_num_source", "Match Number: Text Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
 	-- ^ enumerations are added later
@@ -779,7 +788,11 @@ end
 -- A function named script_description returns the description shown to
 -- the user
 function script_description()
-	return "For use with BEST Robotics PC Scoring Manager.\nThis scrapes the marquee page to get the teams in each quadrant, plus the current timer.\nMade by Ben Straub"
+	return "<center><h3>BEST Robotics Marquee Scraper</h3></center>" ..
+		   "<center><small>Made by Ben Straub</small></center>" ..
+		   "<p>For use with BEST Robotics PC Scoring Manager.\n" .. 
+		   "This scrapes the marquee page to get the teams in each quadrant, the current match, and the current timer.</p>" ..
+		   "<p>Note there are two hotkeys for this script that you can set in \"Settings\" > \"Hotkeys\".</p></hr>"
 end
 
 -- A function named script_update will be called when settings are changed
