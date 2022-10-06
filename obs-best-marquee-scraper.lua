@@ -131,8 +131,43 @@ function parsing_update_timer_callback()
 	---- start parsing
 	local root_parse = htmlparser.parse(response.body)
 	
-	-- check if blank (in between matches)
+	local need_to_handle_between_matches = false
+	
+	-- check if root response is blank (in between matches)
 	if next(root_parse.nodes) == nil then
+		need_to_handle_between_matches = true
+		-- actual handling comes later, still need to check for 00:00 indicator
+	else
+		-- root isn't blank, so go ahead and check the timer
+		-- If timer is 00:00, that's the other possible indicator that we're between matches
+		
+		-- get timer
+		local elem_timer = root_parse:select(".nameAndTimer > h2")
+		if next(elem_timer) == nil then
+			return
+		end
+		cur_web_time = elem_timer[1]:getcontent()
+		--print("==== Current timer is: ".. cur_web_time)
+		
+		if (cur_web_time == "00:00") or (cur_web_time == "0:00") then
+			need_to_handle_between_matches = true
+			-- For the first time (when we're just now becoming between matches)
+			--  make sure it shows the new "00:00" and doesn't get stuck on "00:01"
+			-- After the first time, between_matches will be true, and the upcoming switchover
+			--  logic will take over setting the timer label at the appropriate time.
+			if not between_matches then
+				set_timer_label(cur_web_time, cur_settings)
+			end
+		else
+			need_to_handle_between_matches = false
+			-- not between matches, timer text label will get set later along with match num and quads
+		end
+	end
+	
+	
+	-- If we're between matches, handle that.
+	-- This if-then block returns, so no other parsing happens if need_to_handle_between_matches == true.
+	if need_to_handle_between_matches then
 		-- no nodes means that the match page is blank, so it's in between matches
 		-- See if we're just now going to be in between matches:
 		if (between_matches == false) then
@@ -170,21 +205,13 @@ function parsing_update_timer_callback()
 		return
 	end
 	
-	-- else, there are nodes, we're not between matches
+	-- else, if we've made it here, we're not between matches
 	between_matches = false
 	-- see if there was a switchover scheduled that we need to remove now
 	if switchover_scheduled then
 		obs.timer_remove(upcoming_match_switchover_timer_callback)
 		switchover_scheduled = false
 	end
-	
-	-- get timer
-	local elem_timer = root_parse:select(".nameAndTimer > h2")
-	if next(elem_timer) == nil then
-		return
-	end
-	cur_web_time = elem_timer[1]:getcontent()
-	--print("==== Current timer is: ".. cur_web_time)
 	
 	-- get match phase and num
 	local elem_match_phase_and_num = root_parse:select(".nameAndTimer > h3")
@@ -241,12 +268,14 @@ end
 function upcoming_match_switchover_hotkey_callback(pressed)
 	-- pressed == true means the down stroke, vs pressed == false is the release of the key
 	if pressed then
-		-- check if it's already scheduled (need to unschedule if so)
-		if switchover_scheduled then
-			obs.timer_remove(upcoming_match_switchover_timer_callback)
+		-- only allow changes between matches
+		if between_matches then
+			-- check if it's already scheduled (need to unschedule if so)
+			if switchover_scheduled then
+				obs.timer_remove(upcoming_match_switchover_timer_callback)
+			end
+			upcoming_match_switchover()
 		end
-		-- TODO: check if we're mid match?
-		upcoming_match_switchover()
 	end
 end
 
@@ -521,13 +550,15 @@ function source_deactivated(cd)
 end
 
 function manual_timer_reset()
-	activate_manual_timer(false)
-	cur_manual_timer_seconds = TIMER_RESET_SECONDS
-	local source = obs.obs_get_source_by_name(timer_source_name)
-	if source ~= nil then
-		local active = obs.obs_source_active(source)
-		obs.obs_source_release(source)
-		activate_manual_timer(active)
+	if manual_timer then
+		activate_manual_timer(false)
+		cur_manual_timer_seconds = TIMER_RESET_SECONDS
+		local source = obs.obs_get_source_by_name(timer_source_name)
+		if source ~= nil then
+			local active = obs.obs_source_active(source)
+			obs.obs_source_release(source)
+			activate_manual_timer(active)
+		end
 	end
 end
 
