@@ -834,6 +834,11 @@ end
 -- case, a hotkey's save data).  Settings set via the properties are saved
 -- automatically.
 function script_save(settings)
+	---- Save custom data
+	-- Save off the current match phase, so we can use that as our starting assumption next time
+	obs.obs_data_set_string(settings, "var.cur_match_phase", cur_match_phase)
+
+	---- HOTKEYS:
 	-- save hotkey for manual timer reset
 	local manual_timer_reset_hotkey_save_array = obs.obs_hotkey_save(manual_timer_reset_hotkey_id)
 	obs.obs_data_set_array(settings, "BEST_parser_reset_manual_timer", manual_timer_reset_hotkey_save_array)
@@ -854,6 +859,12 @@ function script_load(settings)
 	--obs.obs_data_erase(settings, "net_status")
 	obs.obs_data_set_string(settings, "net_status", "Disconnected.")
 	
+	---- Load custom data
+	local temp = obs.obs_data_get_string(settings, "var.cur_match_phase")
+	if temp ~= nil and temp ~= "" then
+		cur_match_phase = temp
+	end
+	
 	-- Connect activation/deactivation signal callbacks
 	--
 	-- NOTE: These particular script callbacks do not necessarily have to
@@ -865,6 +876,7 @@ function script_load(settings)
 	obs.signal_handler_connect(sh, "source_activate", source_activated)
 	obs.signal_handler_connect(sh, "source_deactivate", source_deactivated)
 
+	---- HOTKEYS:
 	-- register the hotkeys
 	manual_timer_reset_hotkey_id = obs.obs_hotkey_register_frontend("BEST_parser_reset_manual_timer",
 																	"BEST Parser Script: Reset Manual Timer",
