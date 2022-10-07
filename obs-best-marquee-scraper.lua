@@ -29,7 +29,7 @@ switchover_scheduled = false
 quick_retry_count = 0
 
 cur_settings = nil
-cur_match_phase = ""
+cur_match_phase = "Seeding"
 cur_match_num = 0
 
 last_text_timer = ""
@@ -44,7 +44,7 @@ manual_timer_reset_hotkey_id = obs.OBS_INVALID_HOTKEY_ID
 RETRY_TIME = 5000
 UPDATE_TIME = 200
 SWITCH_TO_UPCOMING_TIME = 60000
-QUICK_RETRY_MAX_COUNT = 2
+QUICK_RETRY_MAX_COUNT = 4
 TIMER_RESET_SECONDS = 3*60
 
 -- Helper function for un-escaping HTML codes. I'll just update this function with the characters I happen to run into
@@ -68,11 +68,11 @@ function connection_timer_callback()
 		-- attempt to query the /Marquee/Match page
 		local addr = base_addr .. "/Marquee/Match"
 		--print("  Connecting to " .. addr)
-		local response = request.send(base_addr .. "/Marquee/Match")
+		local response = request.send(base_addr .. "/Marquee/Match", {timeout = 1000})
 		--print(response)
 		if (response) then
 			--print(response.code)
-			print(response.body)
+			--print(response.body)
 			if response.code ~= 200 then
 				print("Connection failed with response code " .. response.code)
 			else
@@ -98,7 +98,7 @@ function parsing_update_timer_callback()
 	-- We shouldn't need to check for blank / invalid base_addr at this point, since this timer
 	--  should only be running if we had a successful test connection.
 	local addr = base_addr .. "/Marquee/Match"
-	local response = request.send(addr)
+	local response = request.send(addr, {timeout = 1000})
 	
 	--print("In parsing_update_timer_callback")
 	-- Check for bad response
@@ -324,7 +324,7 @@ end
 --   ret[14][1]["yellow"] == "DSST: Byers (1310)" -- match 14, field 1, yellow quadrant
 function parse_upcoming_matches_table()
 	local addr = base_addr .. "/Marquee/PitRefresh"
-	local response = request.send(addr)
+	local response = request.send(addr, {timeout = 1000})
 	
 	-- Check for bad response
 	if (not response) or (response.code ~= 200) then
