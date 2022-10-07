@@ -279,6 +279,16 @@ function upcoming_match_switchover_hotkey_callback(pressed)
 	end
 end
 
+-- Hotkey callback for resetting the upcoming match switchover
+function reset_upcoming_match_switchover_hotkey_callback(pressed)
+	if pressed then
+		-- reset cur_match_num to 0 so that the switchover
+		--  will make a best guess at correct match num
+		cur_match_num = 0
+		upcoming_match_switchover()
+	end
+end
+
 function upcoming_match_switchover()
 	if upcoming_matches ~= nil then
 		if cur_match_num == nil or cur_match_num == 0 then
@@ -728,6 +738,11 @@ function script_properties()
 	obs.obs_property_set_long_description(p_note_switchover_hotkey,
 					"The \"<strong>BEST Parser Script: Switchover to Upcoming Match</strong>\" will immediately switch the " ..
 					"match information to the next match, but only works when between matches (no active timer)")
+	local p_note_reset_switchover_hotkey = obs.obs_properties_add_text(props, "note_reset_switchover_hotkey", "Note:", obs.OBS_TEXT_INFO)
+	obs.obs_property_set_long_description(p_note_reset_switchover_hotkey,
+					"The \"<strong>BEST Parser Script: Reset Back to Soonest Match</strong>\" will reset the match number and switch the " ..
+					"match information to the soonest apparent match. This is useful if you unintentionally switchover to the next match " ..
+					"too early or too many times and are stuck showing some future match info.")
 	
 	local p_match_num_source = obs.obs_properties_add_list(props, "match_num_source", "Match Number: Text Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
 	-- ^ enumerations are added later
@@ -827,6 +842,10 @@ function script_save(settings)
 	local upcoming_switchover_hotkey_save_array = obs.obs_hotkey_save(upcoming_switchover_hotkey_id)
 	obs.obs_data_set_array(settings, "BEST_parser_upcoming_switchover", upcoming_switchover_hotkey_save_array)
 	obs.obs_data_array_release(upcoming_switchover_hotkey_save_array)
+	-- save hotkey for reset switchover
+	local reset_switchover_hotkey_save_array = obs.obs_hotkey_save(reset_switchover_hotkey_id)
+	obs.obs_data_set_array(settings, "BEST_parser_reset_switchover", reset_switchover_hotkey_save_array)
+	obs.obs_data_array_release(reset_switchover_hotkey_save_array)
 end
 
 -- a function named script_load will be called on startup
@@ -853,6 +872,9 @@ function script_load(settings)
 	upcoming_switchover_hotkey_id = obs.obs_hotkey_register_frontend("BEST_parser_upcoming_switchover",
 																     "BEST Parser Script: Switchover to Upcoming Match",
 																	 upcoming_match_switchover_hotkey_callback)
+	reset_switchover_hotkey_id = obs.obs_hotkey_register_frontend("BEST_parser_reset_switchover",
+																     "BEST Parser Script: Reset Back to Soonest Match",
+																	 reset_upcoming_match_switchover_hotkey_callback)
 	
 	-- load the hotkeys:
 	-- load the manual timer reset's saved hotkey array (must be released later)
@@ -863,6 +885,10 @@ function script_load(settings)
 	local upcoming_switchover_hotkey_save_array = obs.obs_data_get_array(settings, "BEST_parser_upcoming_switchover")
 	obs.obs_hotkey_load(upcoming_switchover_hotkey_id, upcoming_switchover_hotkey_save_array)
 	obs.obs_data_array_release(upcoming_switchover_hotkey_save_array)
+	-- load the reset switchover's saved hotkey array (must be released later)
+	local reset_switchover_hotkey_save_array = obs.obs_data_get_array(settings, "BEST_parser_reset_switchover")
+	obs.obs_hotkey_load(reset_switchover_hotkey_id, reset_switchover_hotkey_save_array)
+	obs.obs_data_array_release(reset_switchover_hotkey_save_array)
 	
 
 end
