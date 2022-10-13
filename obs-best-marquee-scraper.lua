@@ -541,12 +541,14 @@ end
 
 -- Called when a source is activated/deactivated
 function activate_timer_signal(cd, activating)
-	local source = obs.calldata_source(cd, "source")
-	if source ~= nil then
-		local name = obs.obs_source_get_name(source)
-		if (name == timer_source_name) then	
-			cur_manual_timer_seconds = TIMER_RESET_SECONDS
-			activate_manual_timer(activating)
+	if manual_timer then
+		local source = obs.calldata_source(cd, "source")
+		if source ~= nil then
+			local name = obs.obs_source_get_name(source)
+			if (name == timer_source_name) then	
+				cur_manual_timer_seconds = TIMER_RESET_SECONDS
+				activate_manual_timer(activating)
+			end
 		end
 	end
 end
