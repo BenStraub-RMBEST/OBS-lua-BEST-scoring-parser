@@ -1,7 +1,15 @@
 # OBS-lua-BEST-scoring-parser
 A Lua script for OBS to parse the match and timer information from the BEST Robotics PC Scoring Manager.
 
-**Note: this script was written for OBS v28.** It uses a new API that is only available in **v28** and later.
+**Note: this script was written for OBS v28.** It uses a new API that is only available in **v28** and later. If you need a version of this script that will work in a version before v28, let me know, and I can probably make that happen.
+
+## Informational how-to video
+I recorded the following informational video on how to set up and use this script. It has some of the same info as this README, plus some in-depth demonstration of how to set up the text boxes and configure the script.
+
+Click below to watch the video:
+
+[![Information how-to video](https://img.youtube.com/vi/bIuh_vyruNc/mqdefault.jpg)](https://www.youtube.com/watch?v=bIuh_vyruNc)
+
 
 ## Installing the script:
 
